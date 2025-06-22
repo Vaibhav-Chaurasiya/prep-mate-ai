@@ -5,6 +5,7 @@ import SignIn from './auth/SignIn';
 import SignUp from './auth/SignUp';
 import Interview from './pages/Interview';
 import Dashboard from './pages/Dashboard';
+import ResumeMatch from './pages/ResumeMatch'; // 🆕 import
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
           <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/interview" element={<Interview />} />
+          <Route path="/resume-match" element={<ResumeMatch />} /> {/* 🆕 route */}
 
           {/* 🔐 Protected Route for Logged-in Users Only */}
           <Route
