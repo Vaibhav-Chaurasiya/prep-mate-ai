@@ -15,6 +15,7 @@ function Navbar() {
 
         {/* Desktop Links */}
         <div className="hidden md:flex items-center space-x-6 text-sm font-medium">
+          <GlowLink to="/" label="Home" />
           <GlowLink to="/interview" label="Interview" />
           <GlowLink to="/resume-match" label="Resume Match" />
           <GlowLink to="/dashboard" label="Dashboard" />
@@ -37,6 +38,7 @@ function Navbar() {
       {/* Mobile menu */}
       {open && (
         <div className="md:hidden px-4 pb-4 space-y-2 bg-white/60 backdrop-blur-md shadow">
+          <GlowLink to="/" label="Home" mobile />
           <GlowLink to="/interview" label="Interview" mobile />
           <GlowLink to="/resume-match" label="Resume Match" mobile />
           <GlowLink to="/dashboard" label="Dashboard" mobile />
@@ -52,7 +54,7 @@ function Navbar() {
   );
 }
 
-// 🔹 GlowLink Component
+// 🔹 Reusable link with glow effect
 const GlowLink = ({ to, label, mobile }) => (
   <Link
     to={to}

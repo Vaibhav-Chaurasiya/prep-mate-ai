@@ -1,17 +1,17 @@
 function Testimonials() {
   const feedbacks = [
     {
-      name: "Riya Shah",
+      name: "Arpit Sharma",
       role: "Software Developer",
       text: "PrepMate AI helped me crack my Amazon interview! The questions and feedback were spot-on.",
     },
     {
-      name: "Ankit Mehta",
+      name: "Vaibhav Chaurasiya",
       role: "Data Analyst",
       text: "The XP system kept me motivated daily. Loved the AI-driven mock interviews!",
     },
     {
-      name: "Sneha Dubey",
+      name: "Siddharth Singh",
       role: "Product Manager",
       text: "Resume matching and feedback gave me a new edge. Highly recommend it.",
     },

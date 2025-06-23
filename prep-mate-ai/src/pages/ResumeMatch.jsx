@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { matchResumeToJD } from "../services/geminiAPI";
 import * as pdfjsLib from "pdfjs-dist";
+import { matchResumeToJD } from "../services/geminiAPI";
 
-// ✅ Use CDN worker (Vite compatible)
+// ✅ Use CDN Worker — required for Vite
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 function ResumeMatch() {
@@ -11,19 +11,6 @@ function ResumeMatch() {
   const [jdText, setJdText] = useState("");
   const [result, setResult] = useState("");
   const [loading, setLoading] = useState(false);
-
-  const handleFiles = async (acceptedFiles, type) => {
-    const file = acceptedFiles[0];
-    let text = "";
-
-    if (file.type === "application/pdf") {
-      text = await extractTextFromPDF(file);
-    } else {
-      text = await file.text();
-    }
-
-    type === "resume" ? setResumeText(text) : setJdText(text);
-  };
 
   const extractTextFromPDF = async (file) => {
     const arrayBuffer = await file.arrayBuffer();
@@ -40,8 +27,29 @@ function ResumeMatch() {
     return text;
   };
 
+  const handleFiles = async (acceptedFiles, type) => {
+    const file = acceptedFiles[0];
+    let text = "";
+
+    if (file.name.endsWith(".pdf")) {
+      text = await extractTextFromPDF(file);
+    } else {
+      text = await file.text();
+    }
+
+    if (type === "resume") {
+      setResumeText(text);
+    } else {
+      setJdText(text);
+    }
+  };
+
   const handleMatch = async () => {
-    if (!resumeText || !jdText) return alert("Please upload both files.");
+    if (!resumeText || !jdText) {
+      alert("Please upload both files");
+      return;
+    }
+
     setLoading(true);
     const output = await matchResumeToJD(resumeText, jdText);
     setResult(output);
@@ -53,17 +61,23 @@ function ResumeMatch() {
       <h2 className="text-3xl font-bold mb-6 text-blue-600">📄 Resume & JD Matching</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <DropBox label="📁 Upload Resume (.pdf/.txt)" onDrop={(f) => handleFiles(f, "resume")} />
-        <DropBox label="📄 Upload Job Description (.pdf/.txt)" onDrop={(f) => handleFiles(f, "jd")} />
+        <DropBox label="Upload Resume (.pdf/.txt)" onDrop={(f) => handleFiles(f, "resume")} />
+        <DropBox label="Upload JD (.pdf/.txt)" onDrop={(f) => handleFiles(f, "jd")} />
       </div>
 
       <button
         onClick={handleMatch}
         disabled={loading}
-        className="mt-6 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded transition"
+        className="mt-6 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded"
       >
         {loading ? "⏳ Matching..." : "🔍 Match Resume to JD"}
       </button>
+
+      {/* Debug: Show extracted text */}
+      <div className="mt-6 text-sm text-gray-600">
+        {resumeText && <p>✅ Resume Uploaded</p>}
+        {jdText && <p>✅ JD Uploaded</p>}
+      </div>
 
       {result && (
         <div className="mt-8 bg-white p-6 rounded shadow">
@@ -91,7 +105,7 @@ function DropBox({ label, onDrop }) {
     >
       <input {...getInputProps()} />
       <p className="text-gray-700 font-medium">{label}</p>
-      <p className="text-xs text-gray-400 mt-1">Supports .txt and .pdf files</p>
+      <p className="text-xs text-gray-400 mt-1">Supports .txt and .pdf</p>
     </div>
   );
 }
