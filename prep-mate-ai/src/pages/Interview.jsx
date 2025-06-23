@@ -6,6 +6,7 @@ import {
 } from "../services/geminiAPI";
 import { calculateXP } from "../utils/xp";
 import html2pdf from "html2pdf.js";
+import { useAuth } from "../context/AuthContext";
 
 function Interview() {
   const [role, setRole] = useState("Software Engineer");
@@ -16,6 +17,7 @@ function Interview() {
   const [xp, setXp] = useState(0);
   const [answerCount, setAnswerCount] = useState(0);
 
+  const { currentUser } = useAuth();
   const exportRef = useRef();
 
   const handleStart = async () => {
@@ -28,16 +30,39 @@ function Interview() {
 
   const handleSubmit = async () => {
     if (!answer.trim()) return alert("Please write an answer first.");
+
     const fb = await evaluateAnswer(answer);
     setFeedback(fb);
+
     const newCount = answerCount + 1;
     setAnswerCount(newCount);
-    setXp(calculateXP(newCount)); // +10 XP per answer
+    const earnedXP = calculateXP(newCount);
+    setXp(earnedXP);
+
+    // Save to localStorage
+    const feedbackItem = {
+      role,
+      question,
+      answer,
+      feedback: fb,
+      improvedAnswer: "",
+      xp: earnedXP,
+    };
+
+    const prev = JSON.parse(localStorage.getItem("feedbackHistory")) || [];
+    localStorage.setItem("feedbackHistory", JSON.stringify([...prev, feedbackItem]));
   };
 
   const handleImprove = async () => {
     const improved = await improveAnswer(answer);
     setImprovedAnswer(improved);
+
+    // Update last saved item in localStorage
+    const history = JSON.parse(localStorage.getItem("feedbackHistory")) || [];
+    if (history.length > 0) {
+      history[history.length - 1].improvedAnswer = improved;
+      localStorage.setItem("feedbackHistory", JSON.stringify(history));
+    }
   };
 
   const handleDownloadPDF = () => {
@@ -53,83 +78,90 @@ function Interview() {
   };
 
   return (
-    <div className="min-h-screen bg-white p-6">
+    <div className="min-h-screen bg-gradient-to-b from-white to-gray-100 p-6">
+      {/* Header */}
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">🧠 AI Interview Simulator</h2>
-        <div className="bg-green-100 text-green-800 px-4 py-1 rounded font-medium">
+        <h2 className="text-3xl font-bold text-gray-800">🧠 Interview Simulator</h2>
+        <span className="bg-green-100 text-green-800 font-medium px-4 py-1 rounded">
           XP: {xp}
-        </div>
+        </span>
       </div>
 
-      <div className="mb-4">
-        <label className="block mb-1 font-medium">Select Role:</label>
+      {/* Role selection */}
+      <div className="mb-6 max-w-md bg-white p-4 rounded shadow">
+        <label className="block mb-1 text-sm font-medium text-gray-700">🎯 Select Role:</label>
         <select
           value={role}
           onChange={(e) => setRole(e.target.value)}
-          className="border px-3 py-2 w-full max-w-xs rounded"
+          className="border border-gray-300 px-3 py-2 rounded w-full text-sm"
         >
           <option>Software Engineer</option>
           <option>Business Analyst</option>
           <option>Product Manager</option>
         </select>
+        <button
+          onClick={handleStart}
+          className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded w-full text-sm transition"
+        >
+          🎬 Start Interview
+        </button>
       </div>
 
-      <button
-        onClick={handleStart}
-        className="bg-blue-600 text-white px-4 py-2 rounded mb-4"
-      >
-        Start Interview
-      </button>
-
+      {/* Question + Answer */}
       {question && (
-        <div className="mb-4">
-          <p className="font-semibold">🔸 Question:</p>
-          <p className="mb-2">{question}</p>
+        <div className="mb-6 max-w-3xl bg-white p-4 rounded shadow">
+          <h3 className="text-lg font-semibold mb-2">📝 Question</h3>
+          <p className="text-gray-700 mb-3">{question}</p>
 
           <textarea
             rows={4}
-            placeholder="Type your answer here..."
+            placeholder="Write your answer..."
             value={answer}
             onChange={(e) => setAnswer(e.target.value)}
-            className="border p-2 w-full rounded"
-          />
+            className="w-full border p-2 rounded text-sm"
+          ></textarea>
 
           <button
             onClick={handleSubmit}
-            className="bg-green-600 text-white px-4 py-2 mt-2 rounded"
+            className="mt-3 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition"
           >
-            Submit Answer
+            ✅ Submit Answer
           </button>
         </div>
       )}
 
+      {/* Feedback & Improve */}
       {feedback && (
         <>
-          <div ref={exportRef} className="bg-gray-100 p-4 rounded mt-4">
-            <h4 className="font-semibold mb-1">📝 Feedback:</h4>
-            <p>{feedback}</p>
+          <div
+            ref={exportRef}
+            className="bg-white p-4 rounded shadow max-w-3xl mb-4"
+          >
+            <h3 className="font-semibold text-lg mb-2">📢 Feedback</h3>
+            <p className="text-gray-700">{feedback}</p>
 
             {improvedAnswer && (
               <>
-                <h4 className="font-semibold mt-4 mb-1">✨ Improved Answer:</h4>
-                <p>{improvedAnswer}</p>
+                <h3 className="font-semibold text-lg mt-4 mb-2">🔧 Improved Answer</h3>
+                <p className="text-gray-700">{improvedAnswer}</p>
               </>
             )}
           </div>
 
-          <button
-            onClick={handleImprove}
-            className="bg-indigo-600 text-white px-4 py-1 mt-3 rounded"
-          >
-            Improve My Answer
-          </button>
-
-          <button
-            onClick={handleDownloadPDF}
-            className="bg-orange-600 text-white px-4 py-1 mt-3 ml-2 rounded"
-          >
-            📄 Download Feedback as PDF
-          </button>
+          <div className="flex flex-wrap gap-2 max-w-3xl">
+            <button
+              onClick={handleImprove}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded text-sm transition"
+            >
+              ✨ Improve My Answer
+            </button>
+            <button
+              onClick={handleDownloadPDF}
+              className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded text-sm transition"
+            >
+              📄 Download PDF
+            </button>
+          </div>
         </>
       )}
     </div>

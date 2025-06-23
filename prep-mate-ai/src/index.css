@@ -1,3 +1,24 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Optional: Set default font */
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #f9fafb; /* light gray background */
+  color: #1f2937; /* neutral gray text */
+}
+
+/* Smooth transitions on hover for buttons, links */
+button, a {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Optional: Custom scrollbar (can skip if mobile-focused) */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background-color: #d1d5db;
+  border-radius: 10px;
+}
