@@ -16,55 +16,80 @@ function Interview() {
   const [improvedAnswer, setImprovedAnswer] = useState("");
   const [xp, setXp] = useState(0);
   const [answerCount, setAnswerCount] = useState(0);
+  const [loading, setLoading] = useState(false);
 
   const { currentUser } = useAuth();
   const exportRef = useRef();
 
+  // 🎬 Start Interview
   const handleStart = async () => {
-    const q = await generateQuestion(role);
-    setQuestion(q);
-    setAnswer("");
-    setFeedback("");
-    setImprovedAnswer("");
+    setLoading(true);
+    try {
+      console.log("🎯 Generating question for role:", role);
+      const q = await generateQuestion(role);
+      console.log("✅ Question received:", q);
+      setQuestion(q);
+      setAnswer("");
+      setFeedback("");
+      setImprovedAnswer("");
+    } catch (err) {
+      console.error("❌ Error generating question:", err);
+      alert("Failed to load question. Please check your API key and internet.");
+    }
+    setLoading(false);
   };
 
+  // ✅ Submit Answer
   const handleSubmit = async () => {
     if (!answer.trim()) return alert("Please write an answer first.");
+    setLoading(true);
+    try {
+      const fb = await evaluateAnswer(answer);
+      setFeedback(fb);
 
-    const fb = await evaluateAnswer(answer);
-    setFeedback(fb);
+      const newCount = answerCount + 1;
+      setAnswerCount(newCount);
+      const earnedXP = calculateXP(newCount);
+      setXp(earnedXP);
 
-    const newCount = answerCount + 1;
-    setAnswerCount(newCount);
-    const earnedXP = calculateXP(newCount);
-    setXp(earnedXP);
+      const feedbackItem = {
+        role,
+        question,
+        answer,
+        feedback: fb,
+        improvedAnswer: "",
+        xp: earnedXP,
+      };
 
-    // Save to localStorage
-    const feedbackItem = {
-      role,
-      question,
-      answer,
-      feedback: fb,
-      improvedAnswer: "",
-      xp: earnedXP,
-    };
-
-    const prev = JSON.parse(localStorage.getItem("feedbackHistory")) || [];
-    localStorage.setItem("feedbackHistory", JSON.stringify([...prev, feedbackItem]));
-  };
-
-  const handleImprove = async () => {
-    const improved = await improveAnswer(answer);
-    setImprovedAnswer(improved);
-
-    // Update last saved item in localStorage
-    const history = JSON.parse(localStorage.getItem("feedbackHistory")) || [];
-    if (history.length > 0) {
-      history[history.length - 1].improvedAnswer = improved;
-      localStorage.setItem("feedbackHistory", JSON.stringify(history));
+      const prev = JSON.parse(localStorage.getItem("feedbackHistory")) || [];
+      localStorage.setItem("feedbackHistory", JSON.stringify([...prev, feedbackItem]));
+    } catch (err) {
+      console.error("❌ Error submitting answer:", err);
+      alert("AI evaluation failed.");
     }
+    setLoading(false);
   };
 
+  // ✨ Improve Answer
+  const handleImprove = async () => {
+    setLoading(true);
+    try {
+      const improved = await improveAnswer(answer);
+      setImprovedAnswer(improved);
+
+      const history = JSON.parse(localStorage.getItem("feedbackHistory")) || [];
+      if (history.length > 0) {
+        history[history.length - 1].improvedAnswer = improved;
+        localStorage.setItem("feedbackHistory", JSON.stringify(history));
+      }
+    } catch (err) {
+      console.error("❌ Error improving answer:", err);
+      alert("AI improvement failed.");
+    }
+    setLoading(false);
+  };
+
+  // 📄 Download as PDF
   const handleDownloadPDF = () => {
     const element = exportRef.current;
     const options = {
@@ -87,7 +112,7 @@ function Interview() {
         </span>
       </div>
 
-      {/* Role selection */}
+      {/* Role Selector */}
       <div className="mb-6 max-w-md bg-white p-4 rounded shadow">
         <label className="block mb-1 text-sm font-medium text-gray-700">🎯 Select Role:</label>
         <select
@@ -101,9 +126,10 @@ function Interview() {
         </select>
         <button
           onClick={handleStart}
+          disabled={loading}
           className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded w-full text-sm transition"
         >
-          🎬 Start Interview
+          {loading ? "⏳ Loading..." : "🎬 Start Interview"}
         </button>
       </div>
 
@@ -123,14 +149,15 @@ function Interview() {
 
           <button
             onClick={handleSubmit}
+            disabled={loading}
             className="mt-3 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition"
           >
-            ✅ Submit Answer
+            {loading ? "⏳ Submitting..." : "✅ Submit Answer"}
           </button>
         </div>
       )}
 
-      {/* Feedback & Improve */}
+      {/* Feedback + Improve + PDF */}
       {feedback && (
         <>
           <div
@@ -151,6 +178,7 @@ function Interview() {
           <div className="flex flex-wrap gap-2 max-w-3xl">
             <button
               onClick={handleImprove}
+              disabled={loading}
               className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded text-sm transition"
             >
               ✨ Improve My Answer
