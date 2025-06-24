@@ -1,7 +1,7 @@
 // 🌐 Load Gemini API URL from .env
 const API_URL = import.meta.env.VITE_API_URL;
 
-// 🔁 Universal fetcher for Gemini
+// 🔁 Universal fetch function for Gemini
 const fetchGeminiResponse = async (prompt) => {
   try {
     const res = await fetch(API_URL, {
@@ -19,7 +19,10 @@ const fetchGeminiResponse = async (prompt) => {
     });
 
     const data = await res.json();
-    return data.candidates?.[0]?.content?.parts?.[0]?.text || "AI response unavailable.";
+    return (
+      data.candidates?.[0]?.content?.parts?.[0]?.text ||
+      "AI response unavailable."
+    );
   } catch (error) {
     console.error("Gemini API error:", error);
     return "Failed to fetch response from Gemini.";
@@ -27,7 +30,7 @@ const fetchGeminiResponse = async (prompt) => {
 };
 
 //
-// 🧠 1️⃣ Generate Interview Question (Real world style)
+// 🧠 1️⃣ Generate Interview Question (Role-Based)
 //
 export const generateQuestion = async (role) => {
   const prompt = `You are a senior interviewer for the role of ${role}.
@@ -39,7 +42,7 @@ Only output the question, no explanation.`;
 };
 
 //
-// 🧠 2️⃣ Evaluate Answer (Simple bullet feedback)
+// 🧠 2️⃣ Evaluate Written Answer (Text Interview)
 //
 export const evaluateAnswer = async (answer) => {
   const prompt = `
@@ -56,12 +59,10 @@ Score (out of 10): X/10
 Strengths:
 - point 1
 - point 2
-- point 3
 
 Areas of Improvement:
 - point 1
 - point 2
-- point 3
 
 Use very simple English. Do not use *, ** or special characters.
 Be friendly and helpful.`;
@@ -69,7 +70,7 @@ Be friendly and helpful.`;
 };
 
 //
-// 🧠 3️⃣ Improve Answer (STAR method, very simple & short)
+// 🧠 3️⃣ Improve Answer (Using STAR Method)
 //
 export const improveAnswer = async (answer) => {
   const prompt = `
@@ -80,13 +81,34 @@ Make it short, simple and easy to speak.
 Use maximum 100-120 words.
 Avoid long sentences and heavy words.
 
-Answer: "${answer}"
-`;
+Answer: "${answer}"`;
   return await fetchGeminiResponse(prompt);
 };
 
 //
-// 🧠 4️⃣ Resume vs Job Description Matching (same as before)
+// 🎙️ 4️⃣ Evaluate Audio-based Response (Tone + Emotion)
+//
+export const evaluateAudioAnswer = async (transcript) => {
+  const prompt = `
+You are an AI interviewer. Analyze this audio-transcribed interview answer.
+
+Response:
+"${transcript}"
+
+Give bullet point feedback on:
+
+1. Clarity and fluency
+2. Speaking tone (confident, nervous, flat)
+3. Emotions detected (if any)
+4. Filler words or hesitations (e.g., umm, like)
+5. Suggestions for improvement
+
+Use plain English. Give 4–6 clear bullet points.`;
+  return await fetchGeminiResponse(prompt);
+};
+
+//
+// 📄 5️⃣ Resume vs JD Matching
 //
 export const matchResumeToJD = async (resume, jd) => {
   const prompt = `
@@ -107,13 +129,11 @@ Match Percentage: X/100
 Missing Skills:
 - skill 1
 - skill 2
-- skill 3
 
 Suggestions:
 - point 1
 - point 2
 
-Use bullet points only. No extra text or explanation.
-`;
+Use only bullet points. No extra explanation.`;
   return await fetchGeminiResponse(prompt);
 };

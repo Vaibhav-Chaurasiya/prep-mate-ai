@@ -22,7 +22,7 @@ function Leaderboard() {
       <ul className="divide-y divide-gray-200">
         {users.map((user, index) => (
           <li key={index} className="py-2 flex justify-between text-gray-700">
-            <span>{index + 1}. {user.email}</span>
+            <span>{index + 1}. {user.username}</span>
             <span>{user.xp} XP</span>
           </li>
         ))}

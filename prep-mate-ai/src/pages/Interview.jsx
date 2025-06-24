@@ -4,18 +4,17 @@ import {
   evaluateAnswer,
   improveAnswer,
 } from "../services/geminiAPI";
-import { calculateXP } from "../utils/xp";
 import html2pdf from "html2pdf.js";
 import { useAuth } from "../context/AuthContext";
+import { db } from "../firebaseConfig";
+import { collection, addDoc, Timestamp, doc, updateDoc, increment } from "firebase/firestore";
 
 function Interview() {
   const [role, setRole] = useState("Software Engineer");
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
-  const [feedback, setFeedback] = useState("");
+  const [feedback, setFeedback] = useState([]);
   const [improvedAnswer, setImprovedAnswer] = useState("");
-  const [xp, setXp] = useState(0);
-  const [answerCount, setAnswerCount] = useState(0);
   const [loading, setLoading] = useState(false);
 
   const { currentUser } = useAuth();
@@ -25,15 +24,12 @@ function Interview() {
   const handleStart = async () => {
     setLoading(true);
     try {
-      console.log("🎯 Generating question for role:", role);
       const q = await generateQuestion(role);
-      console.log("✅ Question received:", q);
       setQuestion(q);
       setAnswer("");
-      setFeedback("");
+      setFeedback([]);
       setImprovedAnswer("");
     } catch (err) {
-      console.error("❌ Error generating question:", err);
       alert("Failed to load question. Please check your API key and internet.");
     }
     setLoading(false);
@@ -44,27 +40,31 @@ function Interview() {
     if (!answer.trim()) return alert("Please write an answer first.");
     setLoading(true);
     try {
-      const fb = await evaluateAnswer(answer);
-      setFeedback(fb);
+      const fbRaw = await evaluateAnswer(answer);
+      const fbPoints = fbRaw.split(/[\n•-]/).map(line => line.trim()).filter(line => line);
+      setFeedback(fbPoints);
 
-      const newCount = answerCount + 1;
-      setAnswerCount(newCount);
-      const earnedXP = calculateXP(newCount);
-      setXp(earnedXP);
+      const earnedXP = 10; // Always 10 XP per question
 
-      const feedbackItem = {
+      // Save feedback to Firestore (interview_feedback)
+      await addDoc(collection(db, "interview_feedback"), {
+        userId: currentUser.uid,
         role,
         question,
         answer,
-        feedback: fb,
+        feedback: fbRaw,
         improvedAnswer: "",
         xp: earnedXP,
-      };
+        createdAt: Timestamp.now(),
+      });
 
-      const prev = JSON.parse(localStorage.getItem("feedbackHistory")) || [];
-      localStorage.setItem("feedbackHistory", JSON.stringify([...prev, feedbackItem]));
+      // Update user's XP in Firestore users collection
+      await updateDoc(doc(db, "users", currentUser.uid), {
+        xp: increment(earnedXP),
+      });
+
     } catch (err) {
-      console.error("❌ Error submitting answer:", err);
+      console.error("Error submitting answer:", err);
       alert("AI evaluation failed.");
     }
     setLoading(false);
@@ -76,14 +76,8 @@ function Interview() {
     try {
       const improved = await improveAnswer(answer);
       setImprovedAnswer(improved);
-
-      const history = JSON.parse(localStorage.getItem("feedbackHistory")) || [];
-      if (history.length > 0) {
-        history[history.length - 1].improvedAnswer = improved;
-        localStorage.setItem("feedbackHistory", JSON.stringify(history));
-      }
     } catch (err) {
-      console.error("❌ Error improving answer:", err);
+      console.error("Error improving answer:", err);
       alert("AI improvement failed.");
     }
     setLoading(false);
@@ -107,9 +101,6 @@ function Interview() {
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-3xl font-bold text-gray-800">🧠 Interview Simulator</h2>
-        <span className="bg-green-100 text-green-800 font-medium px-4 py-1 rounded">
-          XP: {xp}
-        </span>
       </div>
 
       {/* Role Selector */}
@@ -158,14 +149,15 @@ function Interview() {
       )}
 
       {/* Feedback + Improve + PDF */}
-      {feedback && (
+      {feedback.length > 0 && (
         <>
-          <div
-            ref={exportRef}
-            className="bg-white p-4 rounded shadow max-w-3xl mb-4"
-          >
+          <div ref={exportRef} className="bg-white p-4 rounded shadow max-w-3xl mb-4">
             <h3 className="font-semibold text-lg mb-2">📢 Feedback</h3>
-            <p className="text-gray-700">{feedback}</p>
+            <ul className="list-disc pl-5 text-gray-700">
+              {feedback.map((point, index) => (
+                <li key={index}>{point}</li>
+              ))}
+            </ul>
 
             {improvedAnswer && (
               <>

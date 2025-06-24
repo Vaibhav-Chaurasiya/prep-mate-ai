@@ -1,12 +1,12 @@
 import { useAuth } from "../context/AuthContext";
 import { signOut } from "firebase/auth";
-import { auth } from "../firebaseConfig";
+import { auth, db } from "../firebaseConfig";
 import { useNavigate } from "react-router-dom";
 import XPProgressChart from "../components/XPProgressChart";
 import { useEffect, useState } from "react";
-import { calculateXP } from "../utils/xp";
+import { collection, query, where, getDocs, doc, getDoc } from "firebase/firestore";
 
-// 🔥 Badge logic
+// Badge logic
 const getBadge = (xp) => {
   if (xp >= 300) return { label: "Expert", icon: "🔥" };
   if (xp >= 100) return { label: "Intermediate", icon: "🚀" };
@@ -20,6 +20,7 @@ function Dashboard() {
   const [history, setHistory] = useState([]);
   const [xpData, setXpData] = useState([]);
   const [totalXp, setTotalXp] = useState(0);
+  const [username, setUsername] = useState("");
 
   const handleLogout = async () => {
     await signOut(auth);
@@ -27,57 +28,62 @@ function Dashboard() {
   };
 
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem("feedbackHistory")) || [];
-    setHistory(saved);
+    const fetchData = async () => {
+      // Get Username from users collection
+      const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+      if (userDoc.exists()) {
+        setUsername(userDoc.data().username);
+      }
 
-    const chart = saved.map((item, index) => ({
-      session: `#${index + 1}`,
-      xp: item.xp || 10,
-    }));
-    if (chart.length > 0) setXpData(chart);
+      // Get user interview feedback from interview_feedback collection
+      const q = query(collection(db, "interview_feedback"), where("userId", "==", currentUser.uid));
+      const snapshot = await getDocs(q);
+      const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      setHistory(data);
 
-    // Total XP
-    const total = saved.reduce((sum, item) => sum + (item.xp || 0), 0);
-    setTotalXp(total);
-  }, []);
+      // XP Calculation
+      const chart = data.map((item, index) => ({
+        session: `#${index + 1}`,
+        xp: item.xp || 10,
+      }));
+      setXpData(chart);
+
+      const total = data.reduce((sum, item) => sum + (item.xp || 0), 0);
+      setTotalXp(total);
+    };
+
+    fetchData();
+  }, [currentUser]);
 
   const badge = getBadge(totalXp);
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
           <h2 className="text-2xl font-bold text-gray-800">
-            Welcome, {currentUser?.email}
+            Welcome, {username}
           </h2>
           <div className="flex items-center gap-2 mt-2 bg-green-100 text-green-800 px-3 py-1 rounded font-medium">
             XP: {totalXp}
-            <span
-              className={`px-2 py-1 text-xs rounded font-semibold ${
+            <span className={`px-2 py-1 text-xs rounded font-semibold ${
                 badge.label === "Expert"
                   ? "bg-red-100 text-red-600"
                   : badge.label === "Intermediate"
                   ? "bg-blue-100 text-blue-600"
                   : "bg-green-100 text-green-600"
-              }`}
-            >
+              }`}>
               {badge.icon} {badge.label}
             </span>
           </div>
         </div>
-        <button
-          onClick={handleLogout}
-          className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
-        >
+        <button onClick={handleLogout} className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded">
           Logout
         </button>
       </div>
 
-      {/* XP Progress Chart */}
       <XPProgressChart data={xpData} />
 
-      {/* Feedback History */}
       <h3 className="text-xl font-bold mt-10 mb-3 text-gray-800">
         📜 Feedback History
       </h3>
