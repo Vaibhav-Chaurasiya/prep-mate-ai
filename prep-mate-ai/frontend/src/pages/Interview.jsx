@@ -3,11 +3,20 @@ import {
   generateQuestion,
   evaluateAnswer,
   improveAnswer,
+  evaluateAudioAnswer,
 } from "../services/geminiAPI";
 import html2pdf from "html2pdf.js";
 import { useAuth } from "../context/AuthContext";
 import { db } from "../firebaseConfig";
-import { collection, addDoc, Timestamp, doc, updateDoc, increment } from "firebase/firestore";
+import {
+  collection,
+  addDoc,
+  Timestamp,
+  doc,
+  updateDoc,
+  increment,
+} from "firebase/firestore";
+import MicRecorder from "../components/MicRecorder"; // 🎙️ Mic component
 
 function Interview() {
   const [role, setRole] = useState("Software Engineer");
@@ -16,7 +25,6 @@ function Interview() {
   const [feedback, setFeedback] = useState([]);
   const [improvedAnswer, setImprovedAnswer] = useState("");
   const [loading, setLoading] = useState(false);
-
   const { currentUser } = useAuth();
   const exportRef = useRef();
 
@@ -35,18 +43,21 @@ function Interview() {
     setLoading(false);
   };
 
-  // ✅ Submit Answer
+  // ✅ Submit Answer (Text)
   const handleSubmit = async () => {
     if (!answer.trim()) return alert("Please write an answer first.");
     setLoading(true);
     try {
       const fbRaw = await evaluateAnswer(answer);
-      const fbPoints = fbRaw.split(/[\n•-]/).map(line => line.trim()).filter(line => line);
+      const fbPoints = fbRaw
+        .split(/[\n•-]/)
+        .map((line) => line.trim())
+        .filter((line) => line);
       setFeedback(fbPoints);
 
-      const earnedXP = 10; // Always 10 XP per question
+      const earnedXP = 10;
 
-      // Save feedback to Firestore (interview_feedback)
+      // Firestore Save
       await addDoc(collection(db, "interview_feedback"), {
         userId: currentUser.uid,
         role,
@@ -58,11 +69,10 @@ function Interview() {
         createdAt: Timestamp.now(),
       });
 
-      // Update user's XP in Firestore users collection
+      // Update XP
       await updateDoc(doc(db, "users", currentUser.uid), {
         xp: increment(earnedXP),
       });
-
     } catch (err) {
       console.error("Error submitting answer:", err);
       alert("AI evaluation failed.");
@@ -77,13 +87,29 @@ function Interview() {
       const improved = await improveAnswer(answer);
       setImprovedAnswer(improved);
     } catch (err) {
-      console.error("Error improving answer:", err);
       alert("AI improvement failed.");
     }
     setLoading(false);
   };
 
-  // 📄 Download as PDF
+  // 📤 Handle Audio Transcript → Gemini Eval
+  const handleVoiceTranscript = async (transcribedText) => {
+    setAnswer(transcribedText);
+    setLoading(true);
+    try {
+      const fbRaw = await evaluateAudioAnswer(transcribedText);
+      const fbPoints = fbRaw
+        .split(/[\n•-]/)
+        .map((line) => line.trim())
+        .filter((line) => line);
+      setFeedback(fbPoints);
+    } catch (err) {
+      alert("Audio answer evaluation failed.");
+    }
+    setLoading(false);
+  };
+
+  // 📄 Download PDF
   const handleDownloadPDF = () => {
     const element = exportRef.current;
     const options = {
@@ -105,7 +131,9 @@ function Interview() {
 
       {/* Role Selector */}
       <div className="mb-6 max-w-md bg-white p-4 rounded shadow">
-        <label className="block mb-1 text-sm font-medium text-gray-700">🎯 Select Role:</label>
+        <label className="block mb-1 text-sm font-medium text-gray-700">
+          🎯 Select Role:
+        </label>
         <select
           value={role}
           onChange={(e) => setRole(e.target.value)}
@@ -124,7 +152,7 @@ function Interview() {
         </button>
       </div>
 
-      {/* Question + Answer */}
+      {/* Question + Textarea Answer */}
       {question && (
         <div className="mb-6 max-w-3xl bg-white p-4 rounded shadow">
           <h3 className="text-lg font-semibold mb-2">📝 Question</h3>
@@ -145,6 +173,11 @@ function Interview() {
           >
             {loading ? "⏳ Submitting..." : "✅ Submit Answer"}
           </button>
+
+          <div className="mt-4">
+            <h4 className="text-sm font-medium mb-1 text-gray-600">🎙️ Or speak your answer:</h4>
+            <MicRecorder onTranscript={handleVoiceTranscript} />
+          </div>
         </div>
       )}
 
