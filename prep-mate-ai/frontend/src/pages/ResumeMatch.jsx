@@ -1,11 +1,7 @@
-// src/pages/ResumeMatch.jsx
 import { useState, useRef } from "react";
 import { useDropzone } from "react-dropzone";
 import { motion } from "framer-motion";
-import * as pdfjsLib from "pdfjs-dist";
 import { matchResumeToJD } from "../services/geminiAPI";
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 function ResumeMatch() {
   const [resumeText, setResumeText] = useState("");
@@ -16,24 +12,19 @@ function ResumeMatch() {
   const [loading, setLoading] = useState(false);
   const resultRef = useRef(null);
 
-  const extractTextFromPDF = async (file) => {
-    try {
-      const arrayBuffer = await file.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-      let text = "";
+  // 🆕 Backend PDF extractor
+  const extractTextViaBackend = async (file) => {
+    const formData = new FormData();
+    formData.append("file", file);
 
-      for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const content = await page.getTextContent();
-        const pageText = content.items.map((item) => item.str).join(" ");
-        text += pageText + "\n";
-      }
+    const res = await fetch("http://localhost:8000/extract-pdf-text", {
+      method: "POST",
+      body: formData,
+    });
 
-      return text;
-    } catch (error) {
-      console.error("❌ PDF extraction failed:", error);
-      throw new Error("Failed to extract PDF text.");
-    }
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    return data.text;
   };
 
   const handleFiles = async (acceptedFiles, type) => {
@@ -41,7 +32,7 @@ function ResumeMatch() {
     if (!file || !file.name.endsWith(".pdf")) return alert("Only PDF allowed!");
 
     try {
-      const text = await extractTextFromPDF(file);
+      const text = await extractTextViaBackend(file);
       if (type === "resume") {
         setResumeFile(file);
         setResumeText(text);
@@ -50,7 +41,8 @@ function ResumeMatch() {
         setJdText(text);
       }
     } catch (err) {
-      alert("❌ Failed to extract PDF text.");
+      console.error("❌ Backend PDF extraction failed:", err);
+      alert("❌ Failed to extract PDF text from backend.");
     }
   };
 
@@ -62,7 +54,7 @@ function ResumeMatch() {
     setLoading(false);
     setTimeout(() => {
       resultRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, 100); // 🌀 scroll to result
+    }, 100);
   };
 
   return (
