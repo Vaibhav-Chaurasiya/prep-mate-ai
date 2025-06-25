@@ -1,14 +1,12 @@
-// 🌐 Load Gemini API URL from .env
+// 🌐 Load Gemini API from .env
 const API_URL = import.meta.env.VITE_API_URL;
 
-// 🔁 Universal fetch function for Gemini
+// 🔁 Generic Gemini Fetcher
 const fetchGeminiResponse = async (prompt) => {
   try {
     const res = await fetch(API_URL, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         contents: [
           {
@@ -19,10 +17,8 @@ const fetchGeminiResponse = async (prompt) => {
     });
 
     const data = await res.json();
-    return (
-      data.candidates?.[0]?.content?.parts?.[0]?.text ||
-      "AI response unavailable."
-    );
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "AI response unavailable.";
+    return text.replace(/[*_`~]+/g, ""); // ✂️ Remove markdown formatting
   } catch (error) {
     console.error("Gemini API error:", error);
     return "Failed to fetch response from Gemini.";
@@ -30,7 +26,7 @@ const fetchGeminiResponse = async (prompt) => {
 };
 
 //
-// 🧠 1️⃣ Generate Interview Question (Role-Based)
+// 🧠 1️⃣ Generate Interview Question
 //
 export const generateQuestion = async (role) => {
   const prompt = `You are a senior interviewer for the role of ${role}.
@@ -42,17 +38,16 @@ Only output the question, no explanation.`;
 };
 
 //
-// 🧠 2️⃣ Evaluate Written Answer (Text Interview)
+// ✅ 2️⃣ Evaluate Written Answer
 //
 export const evaluateAnswer = async (answer) => {
-  const prompt = `
-You are an AI interview coach.
+  const prompt = `You are an AI interview coach.
 
 Evaluate the following interview answer:
 
 "${answer}"
 
-Give feedback in plain text bullet points:
+Give feedback in bullet points:
 
 Score (out of 10): X/10
 
@@ -64,57 +59,74 @@ Areas of Improvement:
 - point 1
 - point 2
 
-Use very simple English. Do not use *, ** or special characters.
-Be friendly and helpful.`;
+Use simple English. Be friendly. No *, **, or symbols.`;
   return await fetchGeminiResponse(prompt);
 };
 
 //
-// 🧠 3️⃣ Improve Answer (Using STAR Method)
+// ✨ 3️⃣ Improve Answer (STAR Format)
 //
 export const improveAnswer = async (answer) => {
-  const prompt = `
-You are an AI interview coach.
+  const prompt = `You are an AI coach.
 
-Rewrite the answer below using STAR method.
-Make it short, simple and easy to speak.
-Use maximum 100-120 words.
-Avoid long sentences and heavy words.
+Rewrite this interview answer using the STAR method.
+Make it short (under 120 words), easy to speak, and well-structured.
 
-Answer: "${answer}"`;
+Answer:
+"${answer}"`;
   return await fetchGeminiResponse(prompt);
 };
 
 //
-// 🎙️ 4️⃣ Evaluate Audio-based Response (Tone + Emotion)
+// 🎤 4️⃣ Evaluate Audio Answer (Transcript-Based)
 //
 export const evaluateAudioAnswer = async (transcript) => {
-  const prompt = `
-You are an AI interviewer. Analyze this audio-transcribed interview answer.
+  const prompt = `You are an AI interview evaluator.
 
-Response:
+Analyze this audio-transcribed response:
+
 "${transcript}"
 
-Give bullet point feedback on:
+Give feedback on:
 
-1. Clarity and fluency
-2. Speaking tone (confident, nervous, flat)
-3. Emotions detected (if any)
-4. Filler words or hesitations (e.g., umm, like)
-5. Suggestions for improvement
+1. Speaking Clarity
+2. Tone (choose from 🔥 Confident, 😐 Neutral, 😓 Nervous)
+3. Emotion (if detectable)
+4. Filler words or hesitations
+5. Suggestions to improve
 
-Use plain English. Give 4–6 clear bullet points.`;
+Use plain English. Bullet points only.
+Return usable feedback for a beginner candidate.`;
   return await fetchGeminiResponse(prompt);
 };
 
 //
-// 📄 5️⃣ Resume vs JD Matching
+// 🎭 5️⃣ Analyze Tone + Emotion
+//
+export const analyzeToneAndEmotion = async (transcript) => {
+  const prompt = `You are an AI communication expert.
+
+Analyze this transcribed answer:
+
+"${transcript}"
+
+Summarize:
+- Tone (🔥 Confident, 😐 Neutral, 😓 Nervous)
+- Emotion (e.g., excited, anxious, calm)
+- Signs of uncertainty (if any)
+- Tips to sound more confident
+
+Use short bullet points and emojis. No markdown formatting.`;
+  return await fetchGeminiResponse(prompt);
+};
+
+//
+// 📄 6️⃣ Resume vs JD Matching
 //
 export const matchResumeToJD = async (resume, jd) => {
-  const prompt = `
-You are an ATS evaluator.
+  const prompt = `You are an ATS evaluator.
 
-Given the following resume and job description:
+Given this resume and job description:
 
 Resume:
 ${resume}
@@ -122,9 +134,9 @@ ${resume}
 Job Description:
 ${jd}
 
-Please evaluate:
+Evaluate and output:
 
-Match Percentage: X/100
+Match Score: X/100
 
 Missing Skills:
 - skill 1
@@ -134,6 +146,6 @@ Suggestions:
 - point 1
 - point 2
 
-Use only bullet points. No extra explanation.`;
+Use bullet points only. No extra explanation.`;
   return await fetchGeminiResponse(prompt);
 };

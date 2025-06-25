@@ -8,6 +8,7 @@ function MicRecorder({ onTranscript }) {
 
   const handleStop = async (recordedData) => {
     setLoading(true);
+
     const formData = new FormData();
     formData.append("file", recordedData.blob, "audio.wav");
 
@@ -17,11 +18,19 @@ function MicRecorder({ onTranscript }) {
         body: formData,
       });
 
+      if (!res.ok) throw new Error("Server error");
+
       const data = await res.json();
-      onTranscript(data.text); // Send result to Interview page
+      if (data.text) {
+        onTranscript(data.text);
+      } else {
+        alert("❌ Transcription failed: No text returned.");
+      }
     } catch (error) {
+      console.error("Transcription error:", error);
       alert("❌ Failed to transcribe audio.");
     }
+
     setLoading(false);
   };
 
@@ -34,12 +43,21 @@ function MicRecorder({ onTranscript }) {
         backgroundColor="#F3F4F6"
         mimeType="audio/wav"
         className="w-full rounded border"
+        mode="user" // ✅ ensures mic input
       />
       <div className="flex gap-3 mt-2">
-        <button onClick={() => setRecording(true)} className="bg-green-600 text-white px-4 py-1 rounded">
+        <button
+          onClick={() => setRecording(true)}
+          disabled={recording || loading}
+          className="bg-green-600 text-white px-4 py-1 rounded"
+        >
           🎙️ Start
         </button>
-        <button onClick={() => setRecording(false)} className="bg-red-600 text-white px-4 py-1 rounded">
+        <button
+          onClick={() => setRecording(false)}
+          disabled={!recording || loading}
+          className="bg-red-600 text-white px-4 py-1 rounded"
+        >
           ⏹️ Stop
         </button>
         {loading && <span className="text-sm text-gray-600">⏳ Processing...</span>}

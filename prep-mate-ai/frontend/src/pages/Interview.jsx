@@ -13,10 +13,10 @@ import {
   addDoc,
   Timestamp,
   doc,
-  updateDoc,
-  increment,
+  getDoc,
 } from "firebase/firestore";
-import MicRecorder from "../components/MicRecorder"; // 🎙️ Mic component
+import MicRecorder from "../components/MicRecorder";
+import { motion } from "framer-motion";
 
 function Interview() {
   const [role, setRole] = useState("Software Engineer");
@@ -28,7 +28,6 @@ function Interview() {
   const { currentUser } = useAuth();
   const exportRef = useRef();
 
-  // 🎬 Start Interview
   const handleStart = async () => {
     setLoading(true);
     try {
@@ -37,15 +36,14 @@ function Interview() {
       setAnswer("");
       setFeedback([]);
       setImprovedAnswer("");
-    } catch (err) {
-      alert("Failed to load question. Please check your API key and internet.");
+    } catch {
+      alert("Couldn't load the question. Please try again.");
     }
     setLoading(false);
   };
 
-  // ✅ Submit Answer (Text)
   const handleSubmit = async () => {
-    if (!answer.trim()) return alert("Please write an answer first.");
+    if (!answer.trim()) return alert("Please write your answer.");
     setLoading(true);
     try {
       const fbRaw = await evaluateAnswer(answer);
@@ -55,9 +53,6 @@ function Interview() {
         .filter((line) => line);
       setFeedback(fbPoints);
 
-      const earnedXP = 10;
-
-      // Firestore Save
       await addDoc(collection(db, "interview_feedback"), {
         userId: currentUser.uid,
         role,
@@ -65,34 +60,25 @@ function Interview() {
         answer,
         feedback: fbRaw,
         improvedAnswer: "",
-        xp: earnedXP,
         createdAt: Timestamp.now(),
       });
-
-      // Update XP
-      await updateDoc(doc(db, "users", currentUser.uid), {
-        xp: increment(earnedXP),
-      });
     } catch (err) {
-      console.error("Error submitting answer:", err);
-      alert("AI evaluation failed.");
+      alert("Could not evaluate answer.");
     }
     setLoading(false);
   };
 
-  // ✨ Improve Answer
   const handleImprove = async () => {
     setLoading(true);
     try {
       const improved = await improveAnswer(answer);
       setImprovedAnswer(improved);
-    } catch (err) {
-      alert("AI improvement failed.");
+    } catch {
+      alert("Could not improve answer.");
     }
     setLoading(false);
   };
 
-  // 📤 Handle Audio Transcript → Gemini Eval
   const handleVoiceTranscript = async (transcribedText) => {
     setAnswer(transcribedText);
     setLoading(true);
@@ -103,88 +89,99 @@ function Interview() {
         .map((line) => line.trim())
         .filter((line) => line);
       setFeedback(fbPoints);
-    } catch (err) {
-      alert("Audio answer evaluation failed.");
+    } catch {
+      alert("Could not evaluate audio.");
     }
     setLoading(false);
   };
 
-  // 📄 Download PDF
   const handleDownloadPDF = () => {
     const element = exportRef.current;
-    const options = {
-      margin: 0.5,
-      filename: `${role.replace(/\s/g, "_")}_feedback.pdf`,
-      image: { type: "jpeg", quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
-    };
-    html2pdf().set(options).from(element).save();
+    html2pdf()
+      .set({
+        margin: 0.5,
+        filename: `${role.replace(/\s/g, "_")}_feedback.pdf`,
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
+      })
+      .from(element)
+      .save();
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-gray-100 p-6">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-3xl font-bold text-gray-800">🧠 Interview Simulator</h2>
-      </div>
-
-      {/* Role Selector */}
-      <div className="mb-6 max-w-md bg-white p-4 rounded shadow">
-        <label className="block mb-1 text-sm font-medium text-gray-700">
-          🎯 Select Role:
-        </label>
-        <select
-          value={role}
-          onChange={(e) => setRole(e.target.value)}
-          className="border border-gray-300 px-3 py-2 rounded w-full text-sm"
-        >
-          <option>Software Engineer</option>
-          <option>Business Analyst</option>
-          <option>Product Manager</option>
-        </select>
-        <button
-          onClick={handleStart}
-          disabled={loading}
-          className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded w-full text-sm transition"
-        >
-          {loading ? "⏳ Loading..." : "🎬 Start Interview"}
-        </button>
-      </div>
-
-      {/* Question + Textarea Answer */}
-      {question && (
-        <div className="mb-6 max-w-3xl bg-white p-4 rounded shadow">
-          <h3 className="text-lg font-semibold mb-2">📝 Question</h3>
-          <p className="text-gray-700 mb-3">{question}</p>
-
-          <textarea
-            rows={4}
-            placeholder="Write your answer..."
-            value={answer}
-            onChange={(e) => setAnswer(e.target.value)}
-            className="w-full border p-2 rounded text-sm"
-          ></textarea>
-
-          <button
-            onClick={handleSubmit}
-            disabled={loading}
-            className="mt-3 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition"
-          >
-            {loading ? "⏳ Submitting..." : "✅ Submit Answer"}
-          </button>
-
-          <div className="mt-4">
-            <h4 className="text-sm font-medium mb-1 text-gray-600">🎙️ Or speak your answer:</h4>
-            <MicRecorder onTranscript={handleVoiceTranscript} />
-          </div>
+    <div className="min-h-screen bg-gradient-to-b from-white to-gray-100 p-6 flex justify-center">
+      <motion.div
+        className="w-full max-w-3xl"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <div className="text-center mb-6">
+          <h2 className="text-4xl font-bold text-gray-800">🧠 Interview Practice</h2>
         </div>
-      )}
 
-      {/* Feedback + Improve + PDF */}
-      {feedback.length > 0 && (
-        <>
-          <div ref={exportRef} className="bg-white p-4 rounded shadow max-w-3xl mb-4">
+        <div className="mb-6 bg-white p-4 rounded shadow">
+          <label className="block mb-1 text-sm font-medium text-gray-700">
+            🎯 Choose Role:
+          </label>
+          <select
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+            className="border border-gray-300 px-3 py-2 rounded w-full text-sm"
+          >
+            <option>Software Engineer</option>
+            <option>Business Analyst</option>
+            <option>Product Manager</option>
+          </select>
+          <button
+            onClick={handleStart}
+            disabled={loading}
+            className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded w-full text-sm transition"
+          >
+            {loading ? "⏳ Loading..." : "🎬 Start Interview"}
+          </button>
+        </div>
+
+        {question && (
+          <motion.div
+            className="mb-6 bg-white p-4 rounded shadow"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            <h3 className="text-lg font-semibold mb-2">📝 Question</h3>
+            <p className="text-gray-700 mb-3">{question}</p>
+
+            <textarea
+              rows={4}
+              placeholder="Write your answer..."
+              value={answer}
+              onChange={(e) => setAnswer(e.target.value)}
+              className="w-full border p-2 rounded text-sm"
+            ></textarea>
+
+            <button
+              onClick={handleSubmit}
+              disabled={loading}
+              className="mt-3 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition"
+            >
+              {loading ? "⏳ Submitting..." : "✅ Submit Answer"}
+            </button>
+
+            <div className="mt-4">
+              <h4 className="text-sm font-medium mb-1 text-gray-600">🎙️ Or speak your answer:</h4>
+              <MicRecorder onTranscript={handleVoiceTranscript} />
+            </div>
+          </motion.div>
+        )}
+
+        {feedback.length > 0 && (
+          <motion.div
+            ref={exportRef}
+            className="bg-white p-4 rounded shadow mb-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
             <h3 className="font-semibold text-lg mb-2">📢 Feedback</h3>
             <ul className="list-disc pl-5 text-gray-700">
               {feedback.map((point, index) => (
@@ -195,28 +192,28 @@ function Interview() {
             {improvedAnswer && (
               <>
                 <h3 className="font-semibold text-lg mt-4 mb-2">🔧 Improved Answer</h3>
-                <p className="text-gray-700">{improvedAnswer}</p>
+                <p className="text-gray-700 whitespace-pre-line">{improvedAnswer}</p>
               </>
             )}
-          </div>
 
-          <div className="flex flex-wrap gap-2 max-w-3xl">
-            <button
-              onClick={handleImprove}
-              disabled={loading}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded text-sm transition"
-            >
-              ✨ Improve My Answer
-            </button>
-            <button
-              onClick={handleDownloadPDF}
-              className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded text-sm transition"
-            >
-              📄 Download PDF
-            </button>
-          </div>
-        </>
-      )}
+            <div className="flex gap-2 mt-4">
+              <button
+                onClick={handleImprove}
+                disabled={loading}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded text-sm"
+              >
+                ✨ Improve Answer
+              </button>
+              <button
+                onClick={handleDownloadPDF}
+                className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded text-sm"
+              >
+                📄 Download PDF
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </motion.div>
     </div>
   );
 }

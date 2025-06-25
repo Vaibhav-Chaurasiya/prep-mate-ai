@@ -2,9 +2,10 @@ import { useState } from "react";
 import { useDropzone } from "react-dropzone";
 import * as pdfjsLib from "pdfjs-dist";
 import { matchResumeToJD } from "../services/geminiAPI";
+import { motion } from "framer-motion";
 
-// ✅ Use CDN Worker — required for Vite
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+// ✅ Required for pdfjs worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 function ResumeMatch() {
   const [resumeText, setResumeText] = useState("");
@@ -21,7 +22,7 @@ function ResumeMatch() {
       const page = await pdf.getPage(i);
       const content = await page.getTextContent();
       const pageText = content.items.map((item) => item.str).join(" ");
-      text += `${pageText}\n`;
+      text += pageText + "\n";
     }
 
     return text;
@@ -29,27 +30,15 @@ function ResumeMatch() {
 
   const handleFiles = async (acceptedFiles, type) => {
     const file = acceptedFiles[0];
-    let text = "";
+    if (!file || !file.name.endsWith(".pdf")) return alert("Only PDF allowed!");
 
-    if (file.name.endsWith(".pdf")) {
-      text = await extractTextFromPDF(file);
-    } else {
-      text = await file.text();
-    }
-
-    if (type === "resume") {
-      setResumeText(text);
-    } else {
-      setJdText(text);
-    }
+    const text = await extractTextFromPDF(file);
+    if (type === "resume") setResumeText(text);
+    else setJdText(text);
   };
 
   const handleMatch = async () => {
-    if (!resumeText || !jdText) {
-      alert("Please upload both files");
-      return;
-    }
-
+    if (!resumeText || !jdText) return alert("Upload both files");
     setLoading(true);
     const output = await matchResumeToJD(resumeText, jdText);
     setResult(output);
@@ -57,56 +46,59 @@ function ResumeMatch() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <h2 className="text-3xl font-bold mb-6 text-blue-600">📄 Resume & JD Matching</h2>
+    <motion.div
+      className="min-h-screen bg-gradient-to-b from-white to-blue-50 p-6 flex flex-col items-center"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      <h2 className="text-3xl font-bold text-blue-700 mb-8">📄 Resume vs JD Match</h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <DropBox label="Upload Resume (.pdf/.txt)" onDrop={(f) => handleFiles(f, "resume")} />
-        <DropBox label="Upload JD (.pdf/.txt)" onDrop={(f) => handleFiles(f, "jd")} />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl">
+        <DropBox label="Upload Resume (PDF)" onDrop={(f) => handleFiles(f, "resume")} />
+        <DropBox label="Upload Job Description (PDF)" onDrop={(f) => handleFiles(f, "jd")} />
       </div>
 
       <button
         onClick={handleMatch}
         disabled={loading}
-        className="mt-6 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded"
+        className="mt-6 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded shadow"
       >
-        {loading ? "⏳ Matching..." : "🔍 Match Resume to JD"}
+        {loading ? "⏳ Matching..." : "🔍 Match Resume"}
       </button>
 
-      {/* Debug: Show extracted text */}
-      <div className="mt-6 text-sm text-gray-600">
-        {resumeText && <p>✅ Resume Uploaded</p>}
-        {jdText && <p>✅ JD Uploaded</p>}
-      </div>
-
       {result && (
-        <div className="mt-8 bg-white p-6 rounded shadow">
-          <h3 className="text-xl font-semibold mb-2 text-gray-800">🧠 AI Insights:</h3>
-          <pre className="whitespace-pre-wrap text-sm text-gray-700">{result}</pre>
-        </div>
+        <motion.div
+          className="mt-8 bg-white rounded p-6 shadow-md max-w-3xl w-full"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <h3 className="text-xl font-semibold mb-2 text-gray-800">🧠 AI Insight:</h3>
+          <pre className="whitespace-pre-wrap text-gray-700 text-sm">{result}</pre>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 }
 
 function DropBox({ label, onDrop }) {
   const { getRootProps, getInputProps } = useDropzone({
     onDrop,
-    accept: {
-      "text/plain": [".txt"],
-      "application/pdf": [".pdf"],
-    },
+    accept: { "application/pdf": [".pdf"] },
+    multiple: false,
   });
 
   return (
-    <div
+    <motion.div
       {...getRootProps()}
-      className="border-2 border-dashed border-blue-400 p-6 rounded bg-white text-center hover:border-blue-600 transition cursor-pointer"
+      className="border-2 border-dashed border-blue-400 rounded p-6 bg-white text-center cursor-pointer shadow hover:border-blue-600 transition"
+      whileHover={{ scale: 1.02 }}
     >
       <input {...getInputProps()} />
       <p className="text-gray-700 font-medium">{label}</p>
-      <p className="text-xs text-gray-400 mt-1">Supports .txt and .pdf</p>
-    </div>
+      <p className="text-xs text-gray-500 mt-1">Only PDF supported</p>
+    </motion.div>
   );
 }
 
