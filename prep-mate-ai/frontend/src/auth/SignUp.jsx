@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { auth, db } from "../firebaseConfig";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
+import "./SignUp.css";
 
 function SignUp() {
   const [username, setUsername] = useState("");
@@ -13,15 +14,13 @@ function SignUp() {
   const handleSignup = async (e) => {
     e.preventDefault();
     try {
-      // Create Firebase Auth User
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // Save additional user data in Firestore
       await setDoc(doc(db, "users", user.uid), {
         email: user.email,
         username: username,
-        xp: 0, // Start XP at 0
+        xp: 0,
       });
 
       navigate("/dashboard");
@@ -32,54 +31,57 @@ function SignUp() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-      <form
-        onSubmit={handleSignup}
-        className="bg-white p-8 rounded shadow max-w-sm w-full"
-      >
-        <h2 className="text-2xl font-bold mb-4 text-center text-blue-600">Create Your Account</h2>
+    <div className="signup-container">
+      <div className="signup-left">
+        <div className="branding-content">
+          <div className="logo-section">
+            <div className="logo-text">PrepMate AI</div>
+            <div className="tagline">for Interview Prep & Coaching</div>
+          </div>
+          <h1 className="main-title">
+            Create your account<br />to start practicing
+          </h1>
+          <div className="contact-section">
+            Already have an account?
+            <Link to="/signin" className="contact-link">Log In</Link>
+          </div>
+        </div>
+      </div>
 
-        <input
-          type="text"
-          placeholder="Username"
-          className="w-full border p-2 rounded mb-3"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          required
-        />
+      <div className="signup-right">
+        <form onSubmit={handleSignup} className="signup-form-container">
+          <h2 className="form-title">Sign Up</h2>
 
-        <input
-          type="email"
-          placeholder="Email"
-          className="w-full border p-2 rounded mb-3"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
+          <input
+            type="text"
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            className="form-input"
+            required
+          />
 
-        <input
-          type="password"
-          placeholder="Password"
-          className="w-full border p-2 rounded mb-4"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="form-input"
+            required
+          />
 
-        <button
-          type="submit"
-          className="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 rounded"
-        >
-          Sign Up
-        </button>
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="form-input"
+            required
+          />
 
-        <p className="text-sm mt-4 text-center text-gray-600">
-          Already have an account?{" "}
-          <Link to="/signin" className="text-blue-600 hover:underline">
-            Login
-          </Link>
-        </p>
-      </form>
+          <button type="submit" className="signup-btn">Create Account</button>
+        </form>
+      </div>
     </div>
   );
 }

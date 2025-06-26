@@ -1,5 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Navbar from "./components/Navbar"; // ✅ include navbar
+
+// Components
+import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
 import PrivateRoute from "./components/PrivateRoute";
 
 // Pages
@@ -8,14 +11,14 @@ import SignIn from "./auth/SignIn";
 import SignUp from "./auth/SignUp";
 import Interview from "./pages/Interview";
 import Dashboard from "./pages/Dashboard";
-import ResumeMatch from "./pages/ResumeMatch"; // ✅ new route
-import Footer from "./components/Footer"; // optional
+import ResumeMatch from "./pages/ResumeMatch";
+import ForgotPassword from "./pages/ForgotPassword"; // ✅ Moved correctly here
 
 function App() {
   return (
     <Router>
       <div className="min-h-screen flex flex-col bg-gray-50 text-gray-900">
-        <Navbar /> {/* ✅ always visible at top */}
+        <Navbar />
 
         <div className="flex-grow">
           <Routes>
@@ -24,8 +27,9 @@ function App() {
             <Route path="/signup" element={<SignUp />} />
             <Route path="/interview" element={<Interview />} />
             <Route path="/resume-match" element={<ResumeMatch />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} /> {/* ✅ FIXED */}
 
-            {/* 🔐 Protected route */}
+            {/* 🔐 Protected Route */}
             <Route
               path="/dashboard"
               element={
@@ -37,7 +41,7 @@ function App() {
           </Routes>
         </div>
 
-        <Footer /> {/* ✅ optional: if you want a sticky footer */}
+        <Footer />
       </div>
     </Router>
   );
