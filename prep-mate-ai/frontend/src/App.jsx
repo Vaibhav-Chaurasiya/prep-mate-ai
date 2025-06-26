@@ -9,10 +9,11 @@ import PrivateRoute from "./components/PrivateRoute";
 import Home from "./pages/Home";
 import SignIn from "./auth/SignIn";
 import SignUp from "./auth/SignUp";
-import Interview from "./pages/Interview";
+import ForgotPassword from "./pages/ForgotPassword";
 import Dashboard from "./pages/Dashboard";
+import Interview from "./pages/Interview";
 import ResumeMatch from "./pages/ResumeMatch";
-import ForgotPassword from "./pages/ForgotPassword"; // ✅ Moved correctly here
+import BusinessPage from "./pages/Business"; // ✅ Newly added
 
 function App() {
   return (
@@ -25,9 +26,10 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/signin" element={<SignIn />} />
             <Route path="/signup" element={<SignUp />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/interview" element={<Interview />} />
             <Route path="/resume-match" element={<ResumeMatch />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} /> {/* ✅ FIXED */}
+            <Route path="/business" element={<BusinessPage />} /> {/* ✅ Added business route */}
 
             {/* 🔐 Protected Route */}
             <Route

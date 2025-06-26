@@ -2,23 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Optional: Set default font */
+/* ✅ Global body font and layout */
 body {
-  font-family: 'Inter', sans-serif;
-  background-color: #f9fafb; /* light gray background */
-  color: #1f2937; /* neutral gray text */
+  @apply font-inter bg-gray-50 text-gray-900;
 }
 
-/* Smooth transitions on hover for buttons, links */
+/* ✅ Smooth transitions for interactive elements */
 button, a {
-  transition: all 0.2s ease-in-out;
+  @apply transition duration-200 ease-in-out;
 }
 
-/* Optional: Custom scrollbar (can skip if mobile-focused) */
+/* ✅ Optional: Custom scrollbar for desktop UX */
 ::-webkit-scrollbar {
   width: 6px;
 }
 ::-webkit-scrollbar-thumb {
-  background-color: #d1d5db;
+  background-color: #d1d5db; /* Tailwind's gray-300 */
   border-radius: 10px;
 }
