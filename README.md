@@ -134,4 +134,4 @@ export const firebaseConfig = {
 - Gemini API — Google AI
 - Whisper — OpenAI
 - React Mic, Framer Motion, TailwindCSS
-- Built with ❤️ by **Vaibhav Chaurasiya**
+- Built with ❤️ by **Vaibhav Chaurasiya & Siddharth Singh**
