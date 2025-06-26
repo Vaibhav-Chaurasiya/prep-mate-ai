@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
+import { FaRobot } from "react-icons/fa"; // icon for logo
 
 function Navbar() {
   const [open, setOpen] = useState(false);
@@ -8,9 +9,12 @@ function Navbar() {
   return (
     <nav className="bg-[#0f111acc] backdrop-blur-lg shadow-md sticky top-0 z-50 border-b border-gray-800">
       <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center relative">
-        {/* Logo */}
-        <Link to="/" className="text-2xl font-extrabold text-yellow-400 tracking-wide">
-          PrepMate<span className="text-white"> AI</span>
+        {/* Logo with Icon & Gradient */}
+        <Link to="/" className="flex items-center gap-2">
+          <FaRobot className="text-yellow-400 text-2xl" />
+          <span className="text-2xl font-extrabold tracking-wide bg-gradient-to-r from-yellow-400 via-orange-400 to-pink-500 bg-clip-text text-transparent">
+            PrepMate <span className="text-white">AI</span>
+          </span>
         </Link>
 
         {/* Desktop Links */}

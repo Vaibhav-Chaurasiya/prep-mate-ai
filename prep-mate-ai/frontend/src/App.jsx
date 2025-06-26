@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import PrivateRoute from "./components/PrivateRoute";
+import ScrollToTop from "./components/ScrollToTop";
 
 // Pages
 import Home from "./pages/Home";
@@ -13,14 +14,17 @@ import ForgotPassword from "./pages/ForgotPassword";
 import Dashboard from "./pages/Dashboard";
 import Interview from "./pages/Interview";
 import ResumeMatch from "./pages/ResumeMatch";
-import BusinessPage from "./pages/Business"; // ✅ Newly added
+import BusinessPage from "./pages/Business";
 
 function App() {
   return (
     <Router>
-      <div className="min-h-screen flex flex-col bg-gray-50 text-gray-900">
+      <ScrollToTop />
+      <div className="min-h-screen flex flex-col bg-[#0f111a] text-white">
+        {/* 🔹 Navigation */}
         <Navbar />
 
+        {/* 🔹 Main Routes */}
         <div className="flex-grow">
           <Routes>
             <Route path="/" element={<Home />} />
@@ -29,9 +33,9 @@ function App() {
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/interview" element={<Interview />} />
             <Route path="/resume-match" element={<ResumeMatch />} />
-            <Route path="/business" element={<BusinessPage />} /> {/* ✅ Added business route */}
+            <Route path="/business" element={<BusinessPage />} />
 
-            {/* 🔐 Protected Route */}
+            {/* 🔐 Protected Dashboard Route */}
             <Route
               path="/dashboard"
               element={
@@ -43,6 +47,7 @@ function App() {
           </Routes>
         </div>
 
+        {/* 🔹 Footer */}
         <Footer />
       </div>
     </Router>

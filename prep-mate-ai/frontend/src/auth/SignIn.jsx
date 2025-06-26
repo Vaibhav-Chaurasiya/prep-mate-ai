@@ -6,7 +6,6 @@ import {
   GoogleAuthProvider,
 } from "firebase/auth";
 import { auth } from "../firebaseConfig";
-import "./SignIn.css";
 
 export default function SignIn() {
   const [email, setEmail] = useState("");
@@ -34,102 +33,111 @@ export default function SignIn() {
     }
   };
 
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
-
   return (
-    <div className="login-container">
-      <div className="login-left pulse-bg">
-        <div className="branding-content">
-          <div className="logo-section">
-            <div className="logo">
-              <span className="logo-text">PrepMate AI</span>
-            </div>
-            <span className="tagline">for Interview Prep & Coaching</span>
-          </div>
-          <div className="main-content">
-            <h1 className="main-title">
-              Practice smart interviews<br />powered by AI
-            </h1>
-            <div className="contact-section">
-              <span className="contact-text">Don't have an account?</span>
-              <Link to="/signup" className="contact-link">Sign Up</Link>
-            </div>
-          </div>
+    <div className="flex flex-col md:flex-row min-h-screen font-inter">
+      {/* Left Panel */}
+      <div className="md:w-1/2 w-full bg-gradient-to-br from-yellow-400 to-blue-500 flex items-center justify-center p-10 animate-[pulse_10s_ease-in-out_infinite]">
+        <div className="space-y-6 text-left text-white animate-fade-in-up max-w-md">
+          <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-black drop-shadow-lg">
+            PrepMate AI
+          </h1>
+          <p className="text-xl font-medium drop-shadow-md">
+            for Interview Prep & Coaching
+          </p>
+          <h2 className="text-3xl md:text-4xl font-semibold leading-snug drop-shadow-md">
+            Practice Smart Interviews <br /> Powered by AI
+          </h2>
+          <p className="text-lg drop-shadow">
+            Don’t have an account?{" "}
+            <Link
+              to="/signup"
+              className="text-black font-bold underline hover:text-yellow-100"
+            >
+              Sign Up
+            </Link>
+          </p>
         </div>
       </div>
 
-      <div className="login-right">
-        <div className="login-form-container">
-          <h2 className="form-title">Log In</h2>
+      {/* Right Panel - Form */}
+      <div className="md:w-1/2 w-full bg-[#2a2d3a] flex items-center justify-center px-6 py-12">
+        <div className="bg-[#363a4a] w-full max-w-md p-10 rounded-xl shadow-xl space-y-6">
+          <h2 className="text-3xl font-bold text-white text-left drop-shadow">
+            Log In
+          </h2>
 
-          <div className="social-buttons single">
-            <button className="social-btn google-btn" onClick={handleGoogleLogin}>
-              <img
-                src="https://developers.google.com/identity/images/g-logo.png"
-                alt="Google"
-                className="social-icon"
-              />
-              Sign in with Google
-            </button>
+          <button
+            onClick={handleGoogleLogin}
+            className="w-full flex items-center justify-center gap-3 bg-[#4285f4] hover:bg-[#357ae8] text-white py-3 px-4 rounded-md transition"
+          >
+            <img
+              src="https://developers.google.com/identity/images/g-logo.png"
+              alt="Google"
+              className="w-5 h-5"
+            />
+            Sign in with Google
+          </button>
+
+          <div className="flex items-center gap-4 text-gray-400 text-sm">
+            <div className="flex-grow border-t border-gray-600"></div>
+            or
+            <div className="flex-grow border-t border-gray-600"></div>
           </div>
 
-          <div className="divider">
-            <span className="divider-text">or</span>
-          </div>
-
-          <form onSubmit={handleLogin} className="login-form">
-            <div className="form-group">
-              <label htmlFor="email" className="form-label">Email</label>
+          <form onSubmit={handleLogin} className="space-y-5">
+            <div className="space-y-1">
+              <label htmlFor="email" className="text-gray-300 text-sm block text-left">
+                Email
+              </label>
               <input
-                id="email"
                 type="email"
-                required
+                id="email"
+                className="w-full p-3 bg-[#2a2d3a] border border-gray-600 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
                 placeholder="Type your email here"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="form-input"
+                required
               />
             </div>
 
-            <div className="form-group">
-              <div className="password-header">
-                <label htmlFor="password" className="form-label">Password</label>
-                <Link to="/forgot-password" className="forgot-link">Forgot password?</Link>
+            <div className="space-y-1">
+              <div className="flex justify-between items-center">
+                <label htmlFor="password" className="text-gray-300 text-sm text-left">
+                  Password
+                </label>
+                <Link
+                  to="/forgot-password"
+                  className="text-yellow-400 text-xs hover:underline"
+                >
+                  Forgot password?
+                </Link>
               </div>
-              <div className="password-input-container">
+              <div className="relative">
                 <input
-                  id="password"
                   type={showPassword ? "text" : "password"}
-                  required
+                  id="password"
+                  className="w-full p-3 bg-[#2a2d3a] border border-gray-600 text-white rounded-md pr-10 focus:outline-none focus:ring-2 focus:ring-yellow-400"
                   placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="form-input"
+                  required
                 />
                 <button
                   type="button"
-                  onClick={togglePasswordVisibility}
-                  className="password-toggle"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-400"
+                  onClick={() => setShowPassword(!showPassword)}
                 >
-                  {showPassword ? (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
-                      <line x1="1" y1="1" x2="23" y2="23" />
-                    </svg>
-                  ) : (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                      <circle cx="12" cy="12" r="3" />
-                    </svg>
-                  )}
+                  {showPassword ? "🙈" : "👁️"}
                 </button>
               </div>
             </div>
 
-            <button type="submit" className="login-btn">Log In</button>
+            <button
+              type="submit"
+              className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-semibold py-3 rounded-md transition transform hover:-translate-y-0.5"
+            >
+              Log In
+            </button>
           </form>
         </div>
       </div>

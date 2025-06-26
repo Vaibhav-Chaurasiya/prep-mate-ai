@@ -6,7 +6,7 @@ function Testimonials() {
       name: "Rishabh Mishra",
       role: "Software Developer",
       text: "PrepMate AI's mock interviews gave me real-time confidence. The feedback felt personalized!",
-      image: "https://api.dicebear.com/7.x/bottts-neutral/svg?seed=rishabh",
+      image: "https://api.dicebear.com/7.x/bottts-neutral/svg?seed=vaibhav",
     },
     {
       name: "Rahul Kr. Jha",
@@ -23,24 +23,28 @@ function Testimonials() {
   ];
 
   return (
-    <section className="bg-[#12141f] py-12 px-4 text-white">
+    <section className="bg-[#12141f] pt-10 pb-0 px-4 text-white">
+      {/* Gradient Heading */}
       <motion.h2
-        className="text-4xl font-extrabold mb-8 text-center text-yellow-400"
+        className="text-4xl font-extrabold mb-10 text-center bg-gradient-to-r from-yellow-400 via-yellow-300 to-blue-400 text-transparent bg-clip-text"
         initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
         transition={{ duration: 0.6 }}
       >
         💬 What Our Users Say
       </motion.h2>
 
+      {/* Testimonial Cards */}
       <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
         {feedbacks.map((f, i) => (
           <motion.div
             key={i}
             initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.2 }}
-            className="bg-[#1b1e2b] border border-gray-700 p-6 rounded-xl shadow-lg hover:shadow-xl transition duration-300 text-left"
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.2, duration: 0.6 }}
+            viewport={{ once: true }}
+            className="bg-[#1b1e2b] border border-gray-700 p-6 rounded-xl shadow-lg hover:shadow-2xl transition duration-300 text-left"
           >
             <div className="flex items-center gap-4 mb-4">
               <img

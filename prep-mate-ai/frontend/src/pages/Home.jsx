@@ -2,11 +2,26 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import Testimonials from "../components/Testimonials";
 import Pricing from "../components/Pricing";
+import { useEffect, useState } from "react";
 
 function Home() {
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 300);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
     <>
-      {/* 🔹 Hero Section with Background Image and Stats */}
+      {/* 🔹 Hero Section */}
       <section className="relative min-h-screen flex flex-col items-center justify-center px-4 text-white bg-[#0f111a] overflow-hidden">
         {/* Background Image */}
         <img
@@ -49,12 +64,12 @@ function Home() {
           </Link>
         </motion.div>
 
-        {/* 🔹 Stats Section */}
+        {/* Stats */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
-          className="relative z-10 grid grid-cols-1 sm:grid-cols-3 gap-6 mt-20 max-w-4xl w-full text-center"
+          className="relative z-10 grid grid-cols-1 sm:grid-cols-3 gap-6 mt-20 max-w-4xl w-full text-center px-4"
         >
           {[
             { label: "Interviews Simulated", value: "10K+" },
@@ -72,15 +87,26 @@ function Home() {
         </motion.div>
       </section>
 
-      {/* 🔹 Testimonials Section */}
-      <section className="py-20 px-4 bg-[#12141f] text-white">
+      {/* 🔹 Testimonials */}
+      <section className="py-16 px-4 bg-[#12141f] text-white">
         <Testimonials />
       </section>
 
-      {/* 🔹 Pricing Section */}
-      <section className="py-20 px-4 bg-[#191b2a] text-white">
+      {/* 🔹 Pricing with minimal footer gap */}
+      <section className="pt-16 px-4 pb-8 bg-[#191b2a] text-white">
         <Pricing />
       </section>
+
+      {/* 🔹 Scroll to Top */}
+      {showScrollTop && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-6 right-6 bg-gray-800 hover:bg-gray-700 text-white p-3 rounded-full shadow-lg z-50"
+          aria-label="Scroll to top"
+        >
+          ↑
+        </button>
+      )}
     </>
   );
 }
