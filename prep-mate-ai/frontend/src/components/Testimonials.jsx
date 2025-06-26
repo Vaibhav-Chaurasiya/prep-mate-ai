@@ -3,22 +3,22 @@ import { motion } from "framer-motion";
 function Testimonials() {
   const feedbacks = [
     {
-      name: "Arpit Sharma",
-      role: "Software Developer at Amazon",
+      name: "Rishabh Mishra",
+      role: "Software Developer",
       text: "PrepMate AI's mock interviews gave me real-time confidence. The feedback felt personalized!",
-      image: "https://api.dicebear.com/7.x/bottts-neutral/svg?seed=arpit",
+      image: "https://api.dicebear.com/7.x/bottts-neutral/svg?seed=rishabh",
     },
     {
-      name: "Vaibhav Chaurasiya",
+      name: "Rahul Kr. Jha",
       role: "Data Analyst",
       text: "The JD vs Resume feature helped me stand out in a competitive role. Highly accurate insights!",
-      image: "https://api.dicebear.com/7.x/bottts-neutral/svg?seed=vaibhav",
+      image: "https://api.dicebear.com/7.x/bottts-neutral/svg?seed=rahul",
     },
     {
-      name: "Siddharth Singh",
+      name: "Arpit Sharma",
       role: "Product Manager",
       text: "PrepMate AI streamlined my interview prep. Loved the instant feedback and role-specific questions.",
-      image: "https://api.dicebear.com/7.x/bottts-neutral/svg?seed=sid",
+      image: "https://api.dicebear.com/7.x/bottts-neutral/svg?seed=arpit",
     },
   ];
 
