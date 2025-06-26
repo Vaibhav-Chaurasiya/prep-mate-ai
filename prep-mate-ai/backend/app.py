@@ -6,17 +6,17 @@ import nltk
 import fitz  # PyMuPDF
 from nltk.sentiment import SentimentIntensityAnalyzer
 
-# 📥 NLTK sentiment setup
+# NLTK sentiment setup
 nltk.download("vader_lexicon")
 sia = SentimentIntensityAnalyzer()
 
-# 🎤 Whisper model
+# Whisper model
 model = whisper.load_model("base")
 
-# 🚀 FastAPI app
+# FastAPI app
 app = FastAPI()
 
-# 🔓 CORS for frontend access
+# CORS for frontend access
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -24,7 +24,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 🎙️ Transcribe voice + sentiment
+# Transcribe voice + sentiment
 @app.post("/transcribe")
 async def transcribe(file: UploadFile = File(...)):
     try:
@@ -54,7 +54,7 @@ async def transcribe(file: UploadFile = File(...)):
         return {"error": str(e)}
 
 
-# 📄 Extract text from PDF (resume or JD)
+# Extract text from PDF (resume or JD)
 @app.post("/extract-pdf-text")
 async def extract_pdf_text(file: UploadFile = File(...)):
     try:

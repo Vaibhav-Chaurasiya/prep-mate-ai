@@ -1,7 +1,7 @@
-// 🌐 Load Gemini API from .env
+// Load Gemini API from .env
 const API_URL = import.meta.env.VITE_API_URL;
 
-// 🔁 Generic Gemini Fetcher
+// Generic Gemini Fetcher
 const fetchGeminiResponse = async (prompt) => {
   try {
     const res = await fetch(API_URL, {
@@ -26,7 +26,7 @@ const fetchGeminiResponse = async (prompt) => {
 };
 
 //
-// 🧠 1️⃣ Generate Interview Question
+// Generate Interview Question
 //
 export const generateQuestion = async (role) => {
   const prompt = `You are a senior interviewer for the role of ${role}.
@@ -38,7 +38,7 @@ Only output the question, no explanation.`;
 };
 
 //
-// ✅ 2️⃣ Evaluate Written Answer
+// Evaluate Written Answer
 //
 export const evaluateAnswer = async (answer) => {
   const prompt = `You are an AI interview coach.
@@ -64,7 +64,7 @@ Use simple English. Be friendly. No *, **, or symbols.`;
 };
 
 //
-// ✨ 3️⃣ Improve Answer (STAR Format)
+// Improve Answer (STAR Format)
 //
 export const improveAnswer = async (answer) => {
   const prompt = `You are an AI coach.
@@ -78,7 +78,7 @@ Answer:
 };
 
 //
-// 🎤 4️⃣ Evaluate Audio Answer (Transcript-Based)
+// Evaluate Audio Answer (Transcript-Based)
 //
 export const evaluateAudioAnswer = async (transcript) => {
   const prompt = `You are an AI interview evaluator.
@@ -101,7 +101,7 @@ Return usable feedback for a beginner candidate.`;
 };
 
 //
-// 🎭 5️⃣ Analyze Tone + Emotion
+// Analyze Tone + Emotion
 //
 export const analyzeToneAndEmotion = async (transcript) => {
   const prompt = `You are an AI communication expert.
@@ -121,7 +121,7 @@ Use short bullet points and emojis. No markdown formatting.`;
 };
 
 //
-// 📄 6️⃣ Resume vs JD Matching
+// Resume vs JD Matching
 //
 export const matchResumeToJD = async (resume, jd) => {
   const prompt = `You are an ATS evaluator.

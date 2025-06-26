@@ -60,7 +60,7 @@ function Home() {
             to="/interview"
             className="inline-block bg-yellow-400 hover:bg-yellow-300 text-black font-semibold px-6 py-3 rounded transition"
           >
-            🚀 Start Practicing
+            Start Practicing
           </Link>
         </motion.div>
 

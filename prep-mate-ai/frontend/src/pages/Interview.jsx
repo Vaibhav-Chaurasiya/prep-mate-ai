@@ -1,4 +1,3 @@
-// ✅ FINAL Interview.jsx with Tailwind Theme Enhancements
 import { useState, useRef } from "react";
 import {
   generateQuestion,

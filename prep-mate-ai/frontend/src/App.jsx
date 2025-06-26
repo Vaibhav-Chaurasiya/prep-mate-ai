@@ -35,7 +35,7 @@ function App() {
             <Route path="/resume-match" element={<ResumeMatch />} />
             <Route path="/business" element={<BusinessPage />} />
 
-            {/* 🔐 Protected Dashboard Route */}
+            {/* Protected Dashboard Route */}
             <Route
               path="/dashboard"
               element={
