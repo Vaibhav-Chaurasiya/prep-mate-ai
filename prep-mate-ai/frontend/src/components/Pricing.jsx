@@ -79,14 +79,14 @@ const Pricing = () => {
   return (
     <div className="bg-[#0f111a] text-white">
       {/* 🔹 Pricing Header */}
-      <section className="pt-10 pb-6 px-4 text-center">
+      <section className="pt-10 pb-6 px-4 sm:px-6 lg:px-8 text-center">
         <motion.h1
           initial={{ opacity: 0, y: -30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           className="text-4xl font-extrabold mb-3 bg-gradient-to-r from-yellow-400 via-yellow-300 to-blue-400 text-transparent bg-clip-text"
         >
-          Subscription Pricing Rise
+          Subscription Pricing
         </motion.h1>
         <p className="text-lg text-gray-300 mb-6">
           Unlimited interviews with monthly or yearly plans
@@ -110,8 +110,8 @@ const Pricing = () => {
       </section>
 
       {/* 🔹 Pricing Cards */}
-      <section className="pb-12 px-4 max-w-6xl mx-auto">
-        <div className="grid md:grid-cols-3 gap-6">
+      <section className="pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {plans.map((plan, i) => (
             <motion.div
               key={i}
@@ -120,7 +120,7 @@ const Pricing = () => {
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: i * 0.2 }}
               whileHover={{ scale: 1.05 }}
-              className="bg-[#1b1e2b] border border-gray-700 rounded-xl p-5 shadow-xl transition-all duration-300 min-h-[370px] flex flex-col justify-between"
+              className="bg-[#1b1e2b] border border-gray-700 rounded-xl p-5 shadow-xl transition-all duration-300 min-h-[390px] flex flex-col justify-between"
             >
               <div>
                 <h3 className="text-xl font-bold text-yellow-400 mb-3 text-center">
@@ -148,7 +148,7 @@ const Pricing = () => {
       </section>
 
       {/* 🔹 FAQ Section */}
-      <section className="pt-4 pb-20 px-4 max-w-4xl mx-auto">
+      <section className="pt-6 pb-20 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
         <h2 className="text-3xl font-bold text-center mb-8 text-yellow-400">
           Frequently Asked Questions
         </h2>

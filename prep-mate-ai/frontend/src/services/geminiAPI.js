@@ -18,16 +18,16 @@ const fetchGeminiResponse = async (prompt) => {
 
     const data = await res.json();
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "AI response unavailable.";
-    return text.replace(/[*_`~]+/g, ""); // ✂️ Remove markdown formatting
+    return text.replace(/[*_`~]+/g, "");
   } catch (error) {
     console.error("Gemini API error:", error);
     return "Failed to fetch response from Gemini.";
   }
 };
 
-//
+
 // Generate Interview Question
-//
+
 export const generateQuestion = async (role) => {
   const prompt = `You are a senior interviewer for the role of ${role}.
 Generate a real-world interview question that candidates usually face.
@@ -37,9 +37,9 @@ Only output the question, no explanation.`;
   return await fetchGeminiResponse(prompt);
 };
 
-//
+
 // Evaluate Written Answer
-//
+
 export const evaluateAnswer = async (answer) => {
   const prompt = `You are an AI interview coach.
 
@@ -63,9 +63,9 @@ Use simple English. Be friendly. No *, **, or symbols.`;
   return await fetchGeminiResponse(prompt);
 };
 
-//
+
 // Improve Answer (STAR Format)
-//
+
 export const improveAnswer = async (answer) => {
   const prompt = `You are an AI coach.
 
@@ -77,9 +77,9 @@ Answer:
   return await fetchGeminiResponse(prompt);
 };
 
-//
+
 // Evaluate Audio Answer (Transcript-Based)
-//
+
 export const evaluateAudioAnswer = async (transcript) => {
   const prompt = `You are an AI interview evaluator.
 
@@ -100,9 +100,9 @@ Return usable feedback for a beginner candidate.`;
   return await fetchGeminiResponse(prompt);
 };
 
-//
+
 // Analyze Tone + Emotion
-//
+
 export const analyzeToneAndEmotion = async (transcript) => {
   const prompt = `You are an AI communication expert.
 
@@ -120,9 +120,9 @@ Use short bullet points and emojis. No markdown formatting.`;
   return await fetchGeminiResponse(prompt);
 };
 
-//
+
 // Resume vs JD Matching
-//
+
 export const matchResumeToJD = async (resume, jd) => {
   const prompt = `You are an ATS evaluator.
 

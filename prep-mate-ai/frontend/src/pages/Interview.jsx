@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   generateQuestion,
   evaluateAnswer,
@@ -8,14 +8,7 @@ import {
 import html2pdf from "html2pdf.js";
 import { useAuth } from "../context/AuthContext";
 import { db } from "../firebaseConfig";
-import {
-  collection,
-  addDoc,
-  Timestamp,
-  doc,
-  updateDoc,
-  increment,
-} from "firebase/firestore";
+import { collection, addDoc, Timestamp } from "firebase/firestore";
 import { motion } from "framer-motion";
 
 function Interview() {
@@ -28,8 +21,10 @@ function Interview() {
   const [loading, setLoading] = useState(false);
   const [recording, setRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState(null);
-  const { currentUser } = useAuth();
+  const [showWaveform, setShowWaveform] = useState(false);
   const exportRef = useRef();
+  const { currentUser } = useAuth();
+  const recordTimeout = useRef(null);
 
   const handleStart = async () => {
     setLoading(true);
@@ -51,7 +46,7 @@ function Interview() {
     setLoading(true);
     try {
       const fbRaw = await evaluateAnswer(answer);
-      const fbPoints = fbRaw.split(/[\n\u2022\-]/).map((line) => line.trim()).filter(Boolean);
+      const fbPoints = fbRaw.split(/[\n\u2022\-]/).map(line => line.trim()).filter(Boolean);
       setFeedback(fbPoints);
 
       await addDoc(collection(db, "interview_feedback"), {
@@ -62,10 +57,6 @@ function Interview() {
         feedback: fbRaw,
         improvedAnswer: "",
         createdAt: Timestamp.now(),
-      });
-
-      await updateDoc(doc(db, "users", currentUser.uid), {
-        xp: increment(10),
       });
     } catch (err) {
       alert("Could not evaluate answer.");
@@ -117,7 +108,7 @@ function Interview() {
           setSentimentLabel(data.sentiment?.label || "");
 
           const fbRaw = await evaluateAudioAnswer(data.text);
-          const fbPoints = fbRaw.split(/[^\S\r\n]*[\u2022\-\n]/).map((l) => l.trim()).filter(Boolean);
+          const fbPoints = fbRaw.split(/[\n\u2022\-]/).map((l) => l.trim()).filter(Boolean);
           setFeedback(fbPoints);
         } catch (err) {
           alert("Could not process audio");
@@ -128,6 +119,10 @@ function Interview() {
       recorder.start();
       setMediaRecorder(recorder);
       setRecording(true);
+      setShowWaveform(true);
+
+      if (recordTimeout.current) clearTimeout(recordTimeout.current);
+      recordTimeout.current = setTimeout(() => stopRecording(), 30000);
     } catch (err) {
       alert("Mic access denied");
     }
@@ -137,6 +132,8 @@ function Interview() {
     if (mediaRecorder) {
       mediaRecorder.stop();
       setRecording(false);
+      setShowWaveform(false);
+      clearTimeout(recordTimeout.current);
     }
   };
 
@@ -194,27 +191,27 @@ function Interview() {
             >
               {loading ? "⏳ Submitting..." : "✅ Submit Answer"}
             </button>
-            <div className="mt-4">
+            <div className="mt-4 text-center">
               <h4 className="text-sm font-medium mb-1 text-gray-400">🎙️ Or speak your answer:</h4>
-              <div className="flex gap-2">
+              <div className="flex justify-center gap-3 flex-wrap">
                 <button
                   onClick={startRecording}
                   disabled={recording || loading}
-                  className="bg-green-600 text-white px-4 py-1 rounded"
+                  className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded text-sm"
                 >
                   🎙️ Start
                 </button>
                 <button
                   onClick={stopRecording}
                   disabled={!recording || loading}
-                  className="bg-red-600 text-white px-4 py-1 rounded"
+                  className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded text-sm"
                 >
                   ⏹️ Stop
                 </button>
-                {loading && <span className="text-sm text-gray-400">⏳ Processing...</span>}
               </div>
+              {showWaveform && <div className="mt-3 h-4 bg-yellow-400 animate-pulse rounded-full w-1/2 mx-auto"></div>}
               {sentimentLabel && (
-                <p className="mt-2 text-sm text-gray-300">
+                <p className="mt-3 text-sm text-gray-300">
                   📣 <b>Detected Tone:</b> {sentimentLabel === "Positive" ? "😃" : sentimentLabel === "Negative" ? "😞" : "😐"} {sentimentLabel}
                 </p>
               )}
@@ -241,7 +238,7 @@ function Interview() {
                 <p className="text-gray-300 whitespace-pre-line">{improvedAnswer}</p>
               </>
             )}
-            <div className="flex gap-2 mt-4">
+            <div className="flex flex-wrap gap-2 mt-4">
               <button
                 onClick={handleImprove}
                 disabled={loading}
