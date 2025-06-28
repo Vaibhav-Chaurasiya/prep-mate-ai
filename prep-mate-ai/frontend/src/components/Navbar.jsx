@@ -1,20 +1,31 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
-import { FaRobot } from "react-icons/fa"; // icon for logo
+import { useAuth } from "../context/AuthContext";
+import { signOut } from "firebase/auth";
+import { auth } from "../firebaseConfig";
 
 function Navbar() {
   const [open, setOpen] = useState(false);
+  const { currentUser } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    navigate("/signin");
+  };
+
+  const getInitials = (email) => {
+    if (!email) return "U";
+    return email[0].toUpperCase();
+  };
 
   return (
     <nav className="bg-[#0f111acc] backdrop-blur-lg shadow-md sticky top-0 z-50 border-b border-gray-800">
       <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center relative">
-        {/* Logo with Icon & Gradient */}
-        <Link to="/" className="flex items-center gap-2">
-          <FaRobot className="text-yellow-400 text-2xl" />
-          <span className="text-2xl font-extrabold tracking-wide bg-gradient-to-r from-yellow-400 via-orange-400 to-pink-500 bg-clip-text text-transparent">
-            PrepMate <span className="text-white">AI</span>
-          </span>
+        {/* Logo */}
+        <Link to="/" className="text-2xl font-extrabold text-yellow-400 tracking-wide">
+          PrepMate<span className="text-white"> AI</span>
         </Link>
 
         {/* Desktop Links */}
@@ -24,12 +35,41 @@ function Navbar() {
           <GlowLink to="/resume-match" label="Resume Match" />
           <GlowLink to="/business" label="Business" />
           <GlowLink to="/dashboard" label="Dashboard" />
-          <Link
-            to="/signin"
-            className="bg-yellow-400 hover:bg-yellow-300 text-black px-4 py-1 rounded shadow font-semibold transition"
-          >
-            Login
-          </Link>
+
+          {currentUser ? (
+            <>
+              {/* Profile Image or Initials */}
+              <div
+                onClick={() => navigate("/dashboard")}
+                className="cursor-pointer w-9 h-9 rounded-full bg-yellow-400 text-black font-bold flex items-center justify-center hover:opacity-80 transition"
+                title="Go to Dashboard"
+              >
+                {currentUser.photoURL ? (
+                  <img
+                    src={currentUser.photoURL}
+                    alt="Profile"
+                    className="w-full h-full object-cover rounded-full"
+                  />
+                ) : (
+                  getInitials(currentUser.email)
+                )}
+              </div>
+
+              <button
+                onClick={handleLogout}
+                className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <Link
+              to="/signin"
+              className="bg-yellow-400 hover:bg-yellow-300 text-black px-4 py-1 rounded shadow font-semibold transition"
+            >
+              Login
+            </Link>
+          )}
         </div>
 
         {/* Mobile menu toggle */}
@@ -48,12 +88,32 @@ function Navbar() {
           <GlowLink to="/resume-match" label="Resume Match" mobile />
           <GlowLink to="/business" label="Business" mobile />
           <GlowLink to="/dashboard" label="Dashboard" mobile />
-          <Link
-            to="/signin"
-            className="block w-full bg-yellow-400 hover:bg-yellow-300 text-black px-4 py-2 rounded text-center font-semibold"
-          >
-            Login
-          </Link>
+          {currentUser ? (
+            <>
+              <button
+                onClick={() => {
+                  setOpen(false);
+                  navigate("/dashboard");
+                }}
+                className="block w-full text-left px-4 py-2 rounded hover:bg-gray-700"
+              >
+                👤 Profile
+              </button>
+              <button
+                onClick={handleLogout}
+                className="block w-full bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-center font-semibold"
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <Link
+              to="/signin"
+              className="block w-full bg-yellow-400 hover:bg-yellow-300 text-black px-4 py-2 rounded text-center font-semibold"
+            >
+              Login
+            </Link>
+          )}
         </div>
       )}
     </nav>
